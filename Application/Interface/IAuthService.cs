@@ -12,7 +12,7 @@ namespace Application.Interface
     {
         Task<ServiceResult<LoginResponse>> LoginAsync(string email, string password);
         Task<ServiceResult<LoginResponse>> RefreshTokenAsync(string token);
-        Task<ServiceResult> RegisterAsync(RegisterRequest request);
+        Task<ServiceResult<LoginResponse>> RegisterAsync(RegisterRequest request);
 
         // Task<ServiceResult> RevokeRefreshTokenAsync(string token);
     }

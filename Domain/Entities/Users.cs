@@ -11,26 +11,27 @@ namespace Domain.Entities
     {
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public AppRole Role { get; set; }
+
+        //public string Email { get; set; } = string.Empty;
+        //public AppRole Role { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 
-   
+
 
     public class RefreshToken
     {
         public int Id { get; set; }
         public Guid UserId { get; set; }
+        public AppUser User { get; set; } = null!;
+
         public string Token { get; set; } = string.Empty;
-        public string JwtId { get; set; } = string.Empty; // JTI from access token
+        public string JwtId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime ExpiresAt { get; set; }
         public bool IsUsed { get; set; }
         public bool IsRevoked { get; set; }
-
-        public AppUser User { get; set; } = null!;
     }
 
 
