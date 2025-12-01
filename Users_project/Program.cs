@@ -1,5 +1,9 @@
 
+using Application.CQRS.Validator;
+using Application.Interface;
+using Application.Services;
 using Domain.Entities;
+using FluentValidation;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -50,8 +54,11 @@ namespace Users_project
 
             builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console().ReadFrom.Configuration(ctx.Configuration));
 
+            var connectionstring = builder.Configuration.GetConnectionString("UserRegisterAPIDb");
             builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("UserRegisterAPIDb")));
+            {
+                options.UseSqlServer(connectionstring);
+            });
 
             // Password policy
             builder.Services.AddIdentity<AppUser, AppRole>(options =>
@@ -77,6 +84,7 @@ namespace Users_project
             var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
             var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
+            // Here is my authentication princple
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -128,13 +136,19 @@ namespace Users_project
                 };
             });
 
-            // 4. Authorization Policies
+            // My Authorization Policies
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("RequireAdmin", policy => policy.RequireRole(SystemRoles.Admin));
                 options.AddPolicy("RequireManagerOrAdmin", policy => policy.RequireRole(SystemRoles.Admin, SystemRoles.Manager));
                 options.AddPolicy("RequireUser", policy => policy.RequireRole(SystemRoles.User, SystemRoles.Manager, SystemRoles.Admin));
             });
+
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IJWTService, JWTService>();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
             var app = builder.Build();
 
