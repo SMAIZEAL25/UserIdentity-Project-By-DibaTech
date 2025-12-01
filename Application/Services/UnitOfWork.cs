@@ -3,6 +3,7 @@ using Domain.Entities;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,9 @@ namespace Application.Services
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _DbContext;
-
+        
+        private readonly ConcurrentDictionary<Type, object> _repositories
+           = new ConcurrentDictionary<Type, object>();     // Cache created repositories (Generic)
         public IGenericRepository<AppUser> Users { get; private set; }
 
         public IGenericRepository<RefreshToken> RefreshTokens { get; private set; }
@@ -21,6 +24,7 @@ namespace Application.Services
         public UnitOfWork(AppDbContext DbContext)
         {
             _DbContext = DbContext;
+            // Explicitly declared repositories
             Users = new GenericRepository<AppUser>(_DbContext);
             RefreshTokens = new GenericRepository<RefreshToken>(_DbContext);
         }
@@ -30,7 +34,7 @@ namespace Application.Services
             var type = typeof(T);
             if (!_repositories.ContainsKey(type))
             {
-                var repository = new GenericRepository<T>(_context);
+                var repository = new GenericRepository<T>(_DbContext);
                 _repositories[type] = repository;
             }
             return (IGenericRepository<T>)_repositories[type];

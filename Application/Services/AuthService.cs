@@ -156,7 +156,7 @@ namespace Application.Services
             return ServiceResult<LoginResponse>.Success(
                 new LoginResponse(newAccessToken, DateTime.UtcNow.AddMinutes(60), newRefreshToken),
                 "Token refreshed",
-                200);
+                200)
         }
     }
 }
