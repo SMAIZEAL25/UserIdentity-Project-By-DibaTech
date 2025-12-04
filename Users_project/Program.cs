@@ -1,10 +1,11 @@
-
+using Application.CQRS.Command;
 using Application.CQRS.Validator;
 using Application.Interface;
 using Application.Services;
 using Domain.Entities;
 using FluentValidation;
 using Infrastructure.Persistence;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -145,10 +146,23 @@ namespace Users_project
             });
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<IAuthService, AuthService>();
+            //builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJWTService, JWTService>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+
             builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            builder.Services.AddMediatR(typeof(LoginCommand).Assembly);
+            builder.Services.AddMediatR(typeof(RegisterCommand).Assembly);
+
+            // THIS IS THE MAGIC — Automatic validation!
+            builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
+            //builder.Services.AddMediatRValidation();
+
+            builder.Services.AddMediatR(typeof(Program).Assembly);
+
+            builder.Services.AddHttpContextAccessor();
 
             var app = builder.Build();
 

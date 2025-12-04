@@ -13,29 +13,28 @@ namespace Application.CQRS.Validator
     {
         public RegisterRequestValidator()
         {
-            RuleFor(x => x.Email)
-                .NotEmpty()
-                .EmailAddress();
-
             RuleFor(x => x.FirstName)
-                .NotEmpty()
+                .NotEmpty().WithMessage("First name is required")
                 .MaximumLength(50);
 
             RuleFor(x => x.LastName)
-                .NotEmpty()
+                .NotEmpty().WithMessage("Last name is required")
                 .MaximumLength(50);
 
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required")
+                .EmailAddress().WithMessage("Invalid email format");
+
             RuleFor(x => x.Password)
-                .NotEmpty()
-                .MinimumLength(8)
-                .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
-                .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
-                .Matches("[0-9]").WithMessage("Password must contain at least one number.")
-                .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character.");
+                .NotEmpty().WithMessage("Password is required")
+                .MinimumLength(8).WithMessage("Password must be at least 8 characters")
+                .Matches(@"[A-Z]").WithMessage("Password must contain uppercase")
+                .Matches(@"[a-z]").WithMessage("Password must contain lowercase")
+                .Matches(@"[0-9]").WithMessage("Password must contain a number")
+                .Matches(@"[\W_]").WithMessage("Password must contain a special character");
 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.Password)
-                .WithMessage("Passwords do not match");
+                .Equal(x => x.Password).WithMessage("Passwords do not match");
         }
     }
 }

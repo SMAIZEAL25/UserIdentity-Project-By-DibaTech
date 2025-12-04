@@ -1,7 +1,9 @@
 ﻿
+using Application.CQRS.Command;
 using Application.DTOs;
 using Application.Interface;
 using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,60 +11,39 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Users_project.Controller
 {
-   
+
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
-        private readonly IValidator<RegisterRequest> _registerValidator;
-        private readonly IValidator<LoginRequest> _loginValidator;
+        private readonly IMediator _mediator;
 
-        public AuthController(
-            IAuthService authService,
-            IValidator<RegisterRequest> registerValidator,
-            IValidator<LoginRequest> loginValidator)
+        public AuthController(IMediator mediator)
         {
-            _authService = authService;
-            _registerValidator = registerValidator;
-            _loginValidator = loginValidator;
+            _mediator = mediator;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterCommand command)
         {
-            var validationResult = await _registerValidator.ValidateAsync(request);
-            if (!validationResult.IsValid)
-                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-
-            var result = await _authService.RegisterAsync(request);
-            return StatusCode(result.StatusCode, result);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult(); 
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginCommand command)
         {
-            var validationResult = await _loginValidator.ValidateAsync(request);
-            if (!validationResult.IsValid)
-                return BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-
-            var result = await _authService.LoginAsync(request.email, request.Password);
-            return StatusCode(result.StatusCode, result);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
-        {
-            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
-            return StatusCode(result.StatusCode, result);
-        }
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command)
+          => (await _mediator.Send(command)).ToActionResult();
 
-        //[HttpPost("logout")]
-        //[Authorize(Policy = "RequireUser")]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    // Optional: revoke all tokens for user
-        //    return Ok(new { message = "Logged out" });
-        //}
+        [HttpPost("logout")]
+        [Authorize] // Requires JWT
+        public async Task<IActionResult> Logout()
+        => (await _mediator.Send(new LogoutCommand())).ToActionResult();
     }
 }

@@ -16,6 +16,7 @@ namespace Domain.Entities
         public bool IsRevoked { get; set; }
         [ForeignKey(nameof(UserId))]
         public AppUser appUser { get; set; } = null!;
+        public DateTime? RevokedAt { get; set; }
     }
 
 

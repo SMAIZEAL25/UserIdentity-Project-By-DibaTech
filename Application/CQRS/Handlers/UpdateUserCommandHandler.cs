@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.CQRS.Command
+namespace Application.CQRS.Handlers
 {
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ServiceResult<UserDto>>
     {
