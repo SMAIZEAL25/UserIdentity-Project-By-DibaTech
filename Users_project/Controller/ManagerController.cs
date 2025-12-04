@@ -9,15 +9,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace Users_project.Controller
 {
     [ApiController]
-    [Route("api/admin")]
-    [Authorize(Policy = "RequireAdmin")]
-    public class AdminController : ControllerBase
+    [Route("api/RequireManager")]
+    [Authorize(Policy = "RequireManager")]
+    public class ManagerController : ControllerBase
     {
         private readonly IMediator _mediator;
         private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;    // For Delete i will need to use soft delete for future audit purpose using Bool data type 
 
-        public AdminController(
+        public ManagerController(
             IMediator mediator,
             UserManager<AppUser> userManager,
             RoleManager<IdentityRole> roleManager)
@@ -27,6 +27,7 @@ namespace Users_project.Controller
             _roleManager = roleManager;
         }
 
+
         [HttpPost("roles")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
         {
@@ -34,6 +35,8 @@ namespace Users_project.Controller
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
+
+
 
         [HttpPost("assign-role")]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
@@ -47,6 +50,8 @@ namespace Users_project.Controller
             return result.ToActionResult();
         }
 
+
+
         [HttpPost("remove-role")]
         public async Task<IActionResult> RemoveRole([FromBody] RemoveRoleRequest request)
         {
@@ -57,6 +62,8 @@ namespace Users_project.Controller
             return result.Succeeded ? Ok("Role removed") : BadRequest(result.Errors);
         }
 
+
+
         [HttpDelete("roles/{roleName}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {
@@ -64,7 +71,11 @@ namespace Users_project.Controller
             if (role == null) return NotFound();
 
             var result = await _roleManager.DeleteAsync(role);
-            return result.Succeeded ? Ok("Role deleted") : BadRequest(result.Errors);
+            return result.Succeeded ? Ok("Role deleted") : BadRequest(result.Errors); // Use Soft Delete for future audit purpose
         }
+
+        
+
     }
+
 }

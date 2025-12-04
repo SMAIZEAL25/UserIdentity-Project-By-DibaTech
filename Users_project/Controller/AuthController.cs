@@ -1,12 +1,15 @@
-﻿using Application.Interface;
+﻿
+using Application.DTOs;
+using Application.Interface;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace Users_project.Controller
 {
-    // WebApi/Controllers/AuthController.cs
+   
     [ApiController]
     [Route("api/auth")]
     public class AuthController : ControllerBase
@@ -50,16 +53,16 @@ namespace Users_project.Controller
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request)
         {
-            var result = await _authService.RefreshTokenAsync(request.Token);
+            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
             return StatusCode(result.StatusCode, result);
         }
 
-        [HttpPost("logout")]
-        [Authorize(Policy = "RequireUser")]
-        public async Task<IActionResult> Logout()
-        {
-            // Optional: revoke all tokens for user
-            return Ok(new { message = "Logged out" });
-        }
+        //[HttpPost("logout")]
+        //[Authorize(Policy = "RequireUser")]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    // Optional: revoke all tokens for user
+        //    return Ok(new { message = "Logged out" });
+        //}
     }
 }

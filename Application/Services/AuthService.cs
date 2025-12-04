@@ -110,7 +110,7 @@ namespace Application.Services
             await _unitOfWork.Repository<RefreshToken>().AddAsync(tokenEntity);
             await _unitOfWork.SaveChangesAsync();
 
-            _logger.LogInformation("User logged in: {Email", email);
+            _logger.LogInformation("User logged in: {Email}", email);
 
             return ServiceResult<LoginResponse>.Success(
                 new LoginResponse(accessToken, DateTime.UtcNow.AddMinutes(60), refreshToken),
@@ -122,7 +122,7 @@ namespace Application.Services
         {
             var principal = _jwtService.GetPrincipalFromExpiredToken(token);
 
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var guidId))
                 return ServiceResult<LoginResponse>.Failure("Invalid token", 401);
 
@@ -156,7 +156,7 @@ namespace Application.Services
             return ServiceResult<LoginResponse>.Success(
                 new LoginResponse(newAccessToken, DateTime.UtcNow.AddMinutes(60), newRefreshToken),
                 "Token refreshed",
-                200)
+                200);
         }
     }
 }

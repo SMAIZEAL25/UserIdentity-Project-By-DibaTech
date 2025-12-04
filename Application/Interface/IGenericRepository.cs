@@ -25,7 +25,7 @@ namespace Application.Interface
         Task AddRangeAsync(IEnumerable<T> entities);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
-        Task DeleteRangeAsync(IEnumerable<T> entities);
+        //Task DeleteRangeAsync(IEnumerable<T> entities);
         //Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
       
         //Task<T> GetAsync(int? id);

@@ -11,6 +11,8 @@ namespace Application.Interface
     {
         IGenericRepository<AppUser> Users { get; }
         IGenericRepository<RefreshToken> RefreshTokens { get; }
+
+        IGenericRepository<T> Repository <T>() where T : class;
         Task<int> SaveChangesAsync();
     }
 }

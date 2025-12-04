@@ -20,8 +20,8 @@ namespace Application.Services
         public GenericRepository(AppDbContext dbContext)
         {
             _dbContext = dbContext;
-
-
+            _dbSet = _dbContext.Set<T>();
+            
         }
 
         public async Task<T?> GetByIdAsync(Guid id)
@@ -94,19 +94,20 @@ namespace Application.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteRangeAsync(IEnumerable<T> entities)
-        {
-            _dbSet.RemoveRange(entities);
-            await _dbContext.SaveChangesAsync();
-        }
+      
 
-        //public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
-        //{
-        //    return filter == null
-        //        ? await _dbSet.CountAsync()
-        //        : await _dbSet.CountAsync(filter);
-        //}
+        
     }
 }
 
-
+//public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
+//{
+//    return filter == null
+//        ? await _dbSet.CountAsync()
+//        : await _dbSet.CountAsync(filter);
+//}
+//public async Task DeleteRangeAsync(IEnumerable<T> entities)
+//{
+//    _dbSet.RemoveRange(entities);
+//    await _dbContext.SaveChangesAsync();
+//}

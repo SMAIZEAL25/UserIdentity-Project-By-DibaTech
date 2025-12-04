@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace Application.Result
 {
-    public class PaginatedResult<T>(
+    public record PaginatedResult<T>(
+     IReadOnlyList<T> Items,
+     int TotalCount,
+     int PageNumber,
+     int PageSize)
 
-        IReadOnlyList<T> Items,
-        int TotalCount,
-        int PageNumber,
-        int PageSize)
-    {
-        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    {        
+        public int TotalPages => TotalCount > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
         public bool HasPreviousPage => PageNumber > 1;
         public bool HasNextPage => PageNumber < TotalPages;
     }

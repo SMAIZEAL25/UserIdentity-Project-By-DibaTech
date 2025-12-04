@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Identity
+namespace Application.DTOs
 {
-    internal class Class1
-    {
-    }
+    public record RefreshTokenRequest (string RefreshToken);
 }
