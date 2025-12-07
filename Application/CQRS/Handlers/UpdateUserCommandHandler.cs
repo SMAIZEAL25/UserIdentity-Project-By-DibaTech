@@ -1,8 +1,9 @@
-﻿using Application.CQRS.Querries;
+﻿using Application.CQRS.Command;
 using Application.DTOs;
 using Application.Result;
 using AutoMapper;
 using Domain.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -17,15 +18,31 @@ namespace Application.CQRS.Handlers
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
+        private readonly IValidator<UpdateUserCommand> _validator;
 
-        public UpdateUserCommandHandler(UserManager<AppUser> userManager, IMapper mapper)
+        public UpdateUserCommandHandler(
+        UserManager<AppUser> userManager,
+        IMapper mapper,
+        IValidator<UpdateUserCommand> validator)
         {
             _userManager = userManager;
             _mapper = mapper;
+            _validator = validator;
         }
+
 
         public async Task<ServiceResult<UserDto>> Handle(UpdateUserCommand request, CancellationToken ct)
         {
+            var validationResult = await _validator.ValidateAsync(request, ct);
+
+            if (!validationResult.IsValid)
+            {
+                return ServiceResult<UserDto>.Failure(
+                    "Validation failed",
+                    400,
+                    validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
             var user = await _userManager.FindByIdAsync(request.Id.ToString());
             if (user == null)
                 return ServiceResult<UserDto>.Failure("User not found", 404);

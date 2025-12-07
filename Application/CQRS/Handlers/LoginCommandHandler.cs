@@ -3,6 +3,7 @@ using Application.DTOs;
 using Application.Interface;
 using Application.Result;
 using Domain.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ namespace Application.CQRS.Handlers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IJWTService _jwtService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IValidator<LoginCommand> _validator;   
         private readonly ILogger<LoginCommandHandler> _logger;
 
         public LoginCommandHandler(
@@ -27,17 +29,28 @@ namespace Application.CQRS.Handlers
             SignInManager<AppUser> signInManager,
             IJWTService jwtService,
             IUnitOfWork unitOfWork,
+            IValidator<LoginCommand> validator,        
             ILogger<LoginCommandHandler> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _jwtService = jwtService;
             _unitOfWork = unitOfWork;
+            _validator = validator;
             _logger = logger;
         }
 
         public async Task<ServiceResult<LoginResponse>> Handle(LoginCommand request, CancellationToken ct)
         {
+            // AUTOMATIC VALIDATION
+            var validationResult = await _validator.ValidateAsync(request, ct);
+            if (!validationResult.IsValid)
+            {
+                _logger.LogWarning("Login validation failed for {Email}", request.Email);
+                return ServiceResult<LoginResponse>.BadRequest(
+                    "Validation failed",
+                    validationResult.Errors.Select(e => e.ErrorMessage));
+            }
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
             {

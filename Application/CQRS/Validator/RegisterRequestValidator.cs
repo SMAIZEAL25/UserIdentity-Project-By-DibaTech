@@ -1,4 +1,5 @@
 ﻿
+using Application.CQRS.Command;
 using Application.DTOs;
 using FluentValidation;
 using System;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Validator
 {
-    public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
+    public class RegisterRequestValidator : AbstractValidator<RegisterCommand>
     {
         public RegisterRequestValidator()
         {
@@ -33,7 +34,7 @@ namespace Application.CQRS.Validator
                 .Matches(@"[0-9]").WithMessage("Password must contain a number")
                 .Matches(@"[\W_]").WithMessage("Password must contain a special character");
 
-            RuleFor(x => x.ConfirmPassword)
+            RuleFor(x => x.ComnfrimedPassword)
                 .Equal(x => x.Password).WithMessage("Passwords do not match");
         }
     }

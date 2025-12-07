@@ -1,4 +1,5 @@
-﻿using Application.CQRS.Querries;
+﻿using Application.CQRS.Command;
+using Application.CQRS.Querries;
 using Application.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

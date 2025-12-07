@@ -3,6 +3,7 @@ using Application.DTOs;
 using Application.Interface;
 using Application.Result;
 using Domain.Entities;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -14,17 +15,21 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.Handlers
 {
-    public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, ServiceResult<LoginResponse>>
+    public class RefreshTokenCommandHandler
+    : IRequestHandler<RefreshTokenCommand, ServiceResult<LoginResponse>>
     {
+        private readonly IValidator<RefreshTokenCommand> _validator;
         private readonly IJWTService _jwtService;
         private readonly UserManager<AppUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
 
         public RefreshTokenCommandHandler(
+            IValidator<RefreshTokenCommand> validator,
             IJWTService jwtService,
             UserManager<AppUser> userManager,
             IUnitOfWork unitOfWork)
         {
+            _validator = validator;
             _jwtService = jwtService;
             _userManager = userManager;
             _unitOfWork = unitOfWork;
@@ -32,6 +37,17 @@ namespace Application.CQRS.Handlers
 
         public async Task<ServiceResult<LoginResponse>> Handle(RefreshTokenCommand request, CancellationToken ct)
         {
+            // Validate the request
+            var validationResult = await _validator.ValidateAsync(request, ct);
+
+            if (!validationResult.IsValid)
+            {
+                return ServiceResult<LoginResponse>.Failure(
+                    "Validation error",
+                    400,
+                    validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
             var principal = _jwtService.GetPrincipalFromExpiredToken(request.RefreshToken);
             var userIdClaim = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

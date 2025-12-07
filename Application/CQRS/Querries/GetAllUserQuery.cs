@@ -16,10 +16,4 @@ namespace Application.CQRS.Querries
     string? Search = null) : IRequest<ServiceResult<PaginatedResult<UserDto>>>;
 
     public record GetUserByEmailQuery(string Email) : IRequest<ServiceResult<UserDto>>;
-
-    public record UpdateUserCommand(
-        Guid Id,
-        string FirstName,
-        string LastName,
-        string Email) : IRequest<ServiceResult<UserDto>>;
 }

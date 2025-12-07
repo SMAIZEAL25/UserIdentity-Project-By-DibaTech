@@ -1,6 +1,7 @@
 using Application.CQRS.Command;
 using Application.CQRS.Validator;
 using Application.Interface;
+using Application.Result;
 using Application.Services;
 using Domain.Entities;
 using FluentValidation;
@@ -14,170 +15,152 @@ using Serilog;
 using System.Security.Claims;
 using System.Text;
 
+namespace Users_project;
 
-namespace Users_project
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Controllers + Swagger
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen(c =>
         {
-            var builder = WebApplication.CreateBuilder(args);
-
-
-            builder.Services.AddControllers();
-            
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(c =>
+            c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
             {
-                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-                    Description = "Enter 'Bearer' follwed by your token ",
-                    Name = "Authorization",
-                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-                    Scheme = "Bearer"
-                });
-                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-                {
-                    {
-                        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                        {
-                            Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                            {
-                                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                                Id ="Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Description = "Enter 'Bearer' followed by your token",
+                Name = "Authorization",
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "bearer"
             });
 
-            builder.Host.UseSerilog((ctx, lc) => lc.WriteTo.Console().ReadFrom.Configuration(ctx.Configuration));
-
-            var connectionstring = builder.Configuration.GetConnectionString("UserRegisterAPIDb");
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
             {
-                options.UseSqlServer(connectionstring);
-            });
-
-            // Password policy
-            builder.Services.AddIdentity<AppUser, AppRole>(options =>
-            {
-
-                //Policy for my password 
-
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-
-                // here my policy for Lockout attempt 
-                // Lockout
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                options.Lockout.MaxFailedAccessAttempts = 5;
-
-            }).AddEntityFrameworkStores<AppDbContext>()
-              .AddDefaultTokenProviders();
-
-            var jwtKey = builder.Configuration["Jwt:Key"]!;
-            var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
-            var jwtAudience = builder.Configuration["Jwt:Audience"]!;
-
-            // Here is my authentication princple
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtAudience,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                    ClockSkew = TimeSpan.FromMinutes(5)
-                };
-
-                // This ensures roles are loaded into ClaimsPrincipal
-                options.Events = new JwtBearerEvents
-                {
-                    OnTokenValidated = async context =>
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
                     {
-                        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                        var user = await userManager.GetUserAsync(context.Principal!);
-
-                        if (user != null)
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
                         {
-                            var roles = await userManager.GetRolesAsync(user);
-                            var roleClaims = roles.Select(role => new Claim(ClaimTypes.Role, role));
-
-                            var appIdentity = new ClaimsIdentity(roleClaims);
-                            context.Principal!.AddIdentity(appIdentity);
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
                         }
                     },
-                    OnAuthenticationFailed = context =>
+                    Array.Empty<string>()
+                }
+            });
+        });
+
+        // Serilog
+        builder.Host.UseSerilog((ctx, lc) => lc
+            .WriteTo.Console()
+            .ReadFrom.Configuration(ctx.Configuration));
+
+        // Database
+        var connectionString = builder.Configuration.GetConnectionString("UserRegisterAPIDb")
+            ?? throw new InvalidOperationException("Connection string 'UserRegisterAPIDb' not found.");
+
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(connectionString));
+
+        // Identity
+        builder.Services.AddIdentity<AppUser, AppRole>(options =>
+        {
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredLength = 8;
+
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+
+            options.User.RequireUniqueEmail = true;
+        })
+        .AddEntityFrameworkStores<AppDbContext>()
+        .AddDefaultTokenProviders();
+
+        // JWT
+        var jwtKey = builder.Configuration["Jwt:Key"]!;
+        var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+        var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+                ClockSkew = TimeSpan.FromMinutes(5)
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnTokenValidated = async context =>
+                {
+                    var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                    var user = await userManager.GetUserAsync(context.Principal!);
+                    if (user != null)
                     {
-                        context.Response.StatusCode = 401;
-                        context.Response.ContentType = "application/json";
-                        return context.Response.WriteAsync("{\"error\": \"Invalid or expired token\"}");
-                    },
-                    OnForbidden = context =>
-                    {
-                        context.Response.StatusCode = 403;
-                        context.Response.ContentType = "application/json";
-                        return context.Response.WriteAsync("{\"error\": \"Access forbidden\"}");
+                        var roles = await userManager.GetRolesAsync(user);
+                        var roleClaims = roles.Select(r => new Claim(ClaimTypes.Role, r));
+                        context.Principal!.AddIdentity(new ClaimsIdentity(roleClaims));
                     }
-                };
-            });
+                }
+            };
+        });
 
-            // My Authorization Policies
-            builder.Services.AddAuthorization(options =>
-            {
-                options.AddPolicy("RequireAdmin", policy => policy.RequireRole(SystemRoles.Admin));
-                options.AddPolicy("RequireManagerOrAdmin", policy => policy.RequireRole(SystemRoles.Admin, SystemRoles.Manager));
-                options.AddPolicy("RequireUser", policy => policy.RequireRole(SystemRoles.User, SystemRoles.Manager, SystemRoles.Admin));
-            });
+        // Authorization Policies
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("RequireAdmin", p => p.RequireRole(SystemRoles.Admin));
+            options.AddPolicy("RequireManagerOrAdmin", p => p.RequireRole(SystemRoles.Admin, SystemRoles.Manager));
+            options.AddPolicy("RequireUser", p => p.RequireRole(SystemRoles.User, SystemRoles.Manager, SystemRoles.Admin));
+        });
 
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            //builder.Services.AddScoped<IAuthService, AuthService>();
-            builder.Services.AddScoped<IJWTService, JWTService>();
-            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        // Core Services
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IJWTService, JWTService>();
+        builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+        // MediatR + FluentValidation Pipeline (THIS IS THE CORRECT WAY)
+        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly));
+        builder.Services.AddValidatorsFromAssembly(typeof(RefreshTokenCommandValidator).Assembly);
+        builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserCommandValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+        builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
-            builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
-            builder.Services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
-            builder.Services.AddMediatR(typeof(LoginCommand).Assembly);
-            builder.Services.AddMediatR(typeof(RegisterCommand).Assembly);
+        builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
 
-            // THIS IS THE MAGIC — Automatic validation!
-            builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
-            //builder.Services.AddMediatRValidation();
+        
 
-            builder.Services.AddMediatR(typeof(Program).Assembly);
+        var app = builder.Build();
 
-            builder.Services.AddHttpContextAccessor();
-
-            var app = builder.Build();
-
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.MapControllers();
-
-            app.Run();
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
+
+        app.UseHttpsRedirection();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
+
+        app.Run();
     }
 }
