@@ -1,7 +1,6 @@
 ﻿
 using Application.DTOs;
 using Application.Result;
-using AutoMapper;
 using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -16,12 +15,10 @@ namespace Application.CQRS.Querries
     public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, ServiceResult<UserDto>>
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly IMapper _mapper;
 
-        public GetUserByEmailQueryHandler(UserManager<AppUser> userManager, IMapper mapper)
+        public GetUserByEmailQueryHandler(UserManager<AppUser> userManager)
         {
             _userManager = userManager;
-            _mapper = mapper;
         }
 
         public async Task<ServiceResult<UserDto>> Handle(GetUserByEmailQuery request, CancellationToken ct)
@@ -31,7 +28,15 @@ namespace Application.CQRS.Querries
                 return ServiceResult<UserDto>.Failure("User not found", 404);
 
             var roles = await _userManager.GetRolesAsync(user);
-            var dto = _mapper.Map<UserDto>(user) with { Roles = roles.ToList() };
+
+            var dto = new UserDto(
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.UserName,
+                roles.ToList(),
+                user.CreatedAt
+                );
 
             return ServiceResult<UserDto>.Success(dto, "User found", 200);
         }

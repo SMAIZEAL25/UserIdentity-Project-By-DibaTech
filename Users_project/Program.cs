@@ -7,9 +7,11 @@ using Domain.Entities;
 using FluentValidation;
 using Infrastructure.Persistence;
 using MediatR;
+using MediatR.Registration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Security.Claims;
@@ -56,14 +58,11 @@ public class Program
         // Serilog
         builder.Host.UseSerilog((ctx, lc) => lc
             .WriteTo.Console()
-            .ReadFrom.Configuration(ctx.Configuration));
+            .ReadFrom.Configuration(ctx.Configuration)); 
 
         // Database
-        var connectionString = builder.Configuration.GetConnectionString("UserRegisterAPIDb")
-            ?? throw new InvalidOperationException("Connection string 'UserRegisterAPIDb' not found.");
-
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+       options.UseSqlServer(builder.Configuration.GetConnectionString("UserRegisterAPIDb")));
 
         // Identity
         builder.Services.AddIdentity<AppUser, AppRole>(options =>
@@ -138,7 +137,10 @@ public class Program
         builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         // MediatR + FluentValidation Pipeline (THIS IS THE CORRECT WAY)
-        builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly));
+        builder.Services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly);
+        });
         builder.Services.AddValidatorsFromAssembly(typeof(RefreshTokenCommandValidator).Assembly);
         builder.Services.AddValidatorsFromAssemblyContaining<UpdateUserCommandValidator>();
         builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();

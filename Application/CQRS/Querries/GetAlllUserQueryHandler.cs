@@ -1,8 +1,6 @@
-﻿
-using Application.DTOs;
+﻿using Application.DTOs;
 using Application.Interface;
 using Application.Result;
-using AutoMapper;
 using Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -10,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.CQRS.Querries
@@ -19,21 +17,24 @@ namespace Application.CQRS.Querries
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IMapper _mapper;
 
-        public GetAllUsersQueryHandler(IUnitOfWork unitOfWork, UserManager<AppUser> userManager, IMapper mapper)
+        // Removed IMapper
+        public GetAllUsersQueryHandler(IUnitOfWork unitOfWork, UserManager<AppUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
-            _mapper = mapper;
         }
 
         public async Task<ServiceResult<PaginatedResult<UserDto>>> Handle(GetAllUsersQuery request, CancellationToken ct)
         {
-            var filter = string.IsNullOrWhiteSpace(request.Search)
-                ? (Expression<Func<AppUser, bool>>?)null
-                : u => u.Email!.Contains(request.Search) || u.FirstName.Contains(request.Search);
+            // Build filter expression if search term is provided
+            Expression<Func<AppUser, bool>>? filter = null;
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                filter = u => u.Email!.Contains(request.Search) || u.FirstName.Contains(request.Search);
+            }
 
+            // Retrieve paginated users from repository
             var pagedUsers = await _unitOfWork.Users.GetPagedAsync(
                 pageNumber: request.PageNumber,
                 pageSize: request.PageSize,
@@ -42,20 +43,29 @@ namespace Application.CQRS.Querries
                 includeProperties: "" // No navigation props needed
             );
 
+            // Manual mapping
             var userDtos = new List<UserDto>();
             foreach (var user in pagedUsers.Items)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var dto = _mapper.Map<UserDto>(user);
-                dto = dto with { Roles = roles.ToList() };
+                var dto = new UserDto(
+                     user.Id,
+                     user.FirstName,
+                     user.LastName,
+                     user.UserName,
+                     roles.ToList(),
+                     user.CreatedAt
+                );
                 userDtos.Add(dto);
             }
 
+            // Build paginated result
             var result = new PaginatedResult<UserDto>(
                 userDtos,
                 pagedUsers.TotalCount,
                 pagedUsers.PageNumber,
-                pagedUsers.PageSize);
+                pagedUsers.PageSize
+            );
 
             return ServiceResult<PaginatedResult<UserDto>>.Success(result, "Users retrieved", 200);
         }

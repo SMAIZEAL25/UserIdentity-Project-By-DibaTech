@@ -1,7 +1,6 @@
 ﻿using Application.CQRS.Command;
 using Application.DTOs;
 using Application.Result;
-using AutoMapper;
 using Domain.Entities;
 using FluentValidation;
 using MediatR;
@@ -17,16 +16,15 @@ namespace Application.CQRS.Handlers
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, ServiceResult<UserDto>>
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly IMapper _mapper;
+       
         private readonly IValidator<UpdateUserCommand> _validator;
 
         public UpdateUserCommandHandler(
         UserManager<AppUser> userManager,
-        IMapper mapper,
+   
         IValidator<UpdateUserCommand> validator)
         {
-            _userManager = userManager;
-            _mapper = mapper;
+            _userManager = userManager;            
             _validator = validator;
         }
 
@@ -57,7 +55,16 @@ namespace Application.CQRS.Handlers
                 return ServiceResult<UserDto>.Failure("Update failed", 400, result.Errors.Select(e => e.Description));
 
             var roles = await _userManager.GetRolesAsync(user);
-            var dto = _mapper.Map<UserDto>(user) with { Roles = roles.ToList() };
+            /*var dto = _mapper.Map<UserDto>(user) with { Roles = roles.ToList() };*/
+
+            var dto = new UserDto(
+                user.Id,
+                user.FirstName,
+                user.LastName,
+                user.UserName,
+                roles.ToList(),   
+                user.CreatedAt    
+                );
 
             return ServiceResult<UserDto>.Success(dto, "User updated successfully", 200);
         }
