@@ -14,8 +14,7 @@ namespace Domain.Entities
         public DateTime ExpiresAt { get; set; }
         public bool IsUsed { get; set; }
         public bool IsRevoked { get; set; }
-        [ForeignKey(nameof(UserId))]
-        public AppUser appUser { get; set; } = null!;
+    
         public DateTime? RevokedAt { get; set; }
     }
 

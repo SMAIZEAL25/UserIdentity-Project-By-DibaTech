@@ -16,12 +16,24 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>
     {
         base.OnModelCreating(builder);
 
+        // configure RefreshToken - user relationship 
+        
+        builder.Entity<RefreshToken>()
+
+            .HasOne(rt => rt.User)
+            .WithMany(u => u.RefreshTokens)
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+            
+
+
         // RefreshToken indexes
         builder.Entity<RefreshToken>(entity =>
         {
             entity.HasIndex(rt => rt.Token).IsUnique();
             entity.HasIndex(rt => rt.UserId);
             entity.HasIndex(rt => rt.IsRevoked);
+            
         });
 
        

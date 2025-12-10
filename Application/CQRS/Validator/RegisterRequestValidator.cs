@@ -34,7 +34,7 @@ namespace Application.CQRS.Validator
                 .Matches(@"[0-9]").WithMessage("Password must contain a number")
                 .Matches(@"[\W_]").WithMessage("Password must contain a special character");
 
-            RuleFor(x => x.ComnfrimedPassword)
+            RuleFor(x => x.ConfrimedPassword)
                 .Equal(x => x.Password).WithMessage("Passwords do not match");
         }
     }
