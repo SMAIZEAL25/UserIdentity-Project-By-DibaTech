@@ -255,7 +255,7 @@ Ensure to include:
 
 # Learning Outcomes
 
-By completing this project, you will have solid understanding of:
+By completing this project, you will have a solid understanding of:
 	•	Secure user authentication
 	•	Token lifecycle management
 	•	Role-based & Policy-based authorization
@@ -270,6 +270,8 @@ Contributions, issues, and feature requests are welcome.
 Feel free to open a PR or raise an issue.
 
 # Feature Improvement 
+  
   2FA with OTP 
+  
   Rate Limiting 
 
