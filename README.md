@@ -9,6 +9,7 @@ A Clean Architecture–based backend system implementing user authentication, au
 This project is a complete backend authentication and authorization system built with .NET. It provides secure user registration, login, token-based authentication, and role-based/ policy-based authorization, following clean architectural principles to ensure scalability, maintainability, and separation of concerns.
 
 The system includes:
+
 	•	Secure User Registration
 	•	JWT Access Token Generation
 	•	Role-Based Access Control (RBAC)
@@ -22,6 +23,7 @@ The system includes:
 # Project Goals
 
 The overall aim of this project is to demonstrate mastery of:
+
 	•	Backend authentication workflows
 	•	Secure password hashing
 	•	JSON Web Token (JWT) authentication
@@ -33,6 +35,7 @@ The overall aim of this project is to demonstrate mastery of:
 
 # Technology Used
   Purpose
+  
 • ASP.NET Core (.NET 7/8)
 • API Development
 • Entity Framework Core
@@ -55,23 +58,26 @@ The overall aim of this project is to demonstrate mastery of:
 Project Structure (Clean Architecture)
 
 src/
+
  ├── Application/
  │    ├── Interfaces/
  │    ├── DTOs/
  │    ├── Services/
  │    └── CQRS / Validators/ 
- │
+ 
  ├── Domain/
+ 
  │    ├── Entities/
  │    ├── Enums/
  │    └── ValueObjects/
- │
+ 
  ├── Infrastructure/
  │    ├── Persistence/
  │    ├── EntityConfigurations/
  │    ├── Authentication/
  │    └── Services/
- │
+
+ 
  └── WebApi/
       ├── Controllers/
       ├── Middleware/
@@ -87,12 +93,14 @@ This structure ensures separation of concerns, unit testability, and scalability
 1. User Registration
 
 Users can register with:
+
 	•	First Name
 	•	Last Name
 	•	Email
 	•	Password (hashed using a secure algorithm: PBKDF2/BCrypt/SHA256-based hashing)
 
 Validations include:
+
 	•	Unique email enforcement
 	•	Strong password checks
 	•	Secure hashing (no plain-text passwords)
@@ -102,6 +110,7 @@ Validations include:
 2. User Login & JWT Issuance
 
 After successful login:
+
 	•	A JWT token is generated
 	•	Token contains:
 	•	User ID
@@ -115,6 +124,7 @@ After successful login:
 3. JWT-Protected Endpoints
 
 Every protected endpoint validates:
+
 	•	Token presence
 	•	Token signature
 	•	Expiration
@@ -128,11 +138,13 @@ Unauthorized requests return 401 or 403 appropriately.
 4. Role Management (Admin Only)
 
 Roles supported:
+
 	•	Admin
 	•	Manager
 	•	User
 
 Admin can:
+
 	•	Create roles
 	•	Assign roles to users
 	•	Remove user roles
@@ -144,20 +156,22 @@ All admin endpoints are strictly protected via RBAC.
 
 5. User CRUD With Authorization Rules
 
-User Type
-• Permissions
-• Admin
-• View, Update, Delete any user
-• Manager
-• Limited access (custom policies)
-• User
-• Only view/update their own profile
+User Type:
+
+	• Permissions
+	• Admin
+	• View, Update, Delete any user
+	• Manager
+	• Limited access (custom policies)
+	• User
+	• Only view/update their own profile
 
 Further restrictions can be applied using policy-based authorization.
 
 # Database Schema
 
 Minimum required tables:
+
 	•	Users
 	•	Roles
 	•	UserRoles (junction)
@@ -169,6 +183,7 @@ Minimum required tables:
    • RefreshTokens (optional)
 
 # Authentication Flow Overview
+
 	1.	User registers → Password gets hashed and saved
 	2.	User logs in with email + password
 	3.	System validates credentials
@@ -181,7 +196,8 @@ Minimum required tables:
 ⸻
 # How to Run the Project
 
-Prerequisites
+Prerequisites:
+
 	•	.NET 7+ or .NET 8 SDK
 	•	SQL Server (LocalDB or full instance)
 	•	Postman / Thunder Client
