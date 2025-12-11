@@ -41,14 +41,27 @@ namespace Application.CQRS.Handlers
                     validationResult.Errors.Select(e => e.ErrorMessage));
             }
 
-            var user = await _userManager.FindByIdAsync(request.Id.ToString());
+            var user = await _userManager.FindByIdAsync(request.Email.ToString());
             if (user == null)
                 return ServiceResult<UserDto>.Failure("User not found", 404);
 
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
-            user.Email = request.Email;
-            user.UserName = request.Email;
+            user.PhoneNumber = request.PhoneNumber;
+            
+            // Confirmed if Password matches before updating the db with the current password
+            
+            if (!string.IsNullOrEmpty(request.Password) && request.Password == request.ConfrimedPassword)
+            {
+                var passwordResult = await _userManager.ChangePasswordAsync(user, user.PasswordHash, request.Password);
+
+                if (!passwordResult.Succeeded)
+                {
+                    return ServiceResult<UserDto>.Failure("Password update failed", 400, passwordResult.Errors.Select(e => e.Description));
+                }
+
+            }
+
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)

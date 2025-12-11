@@ -10,5 +10,4 @@ namespace Application.CQRS.Command
     public record CreateRoleResponse(string Name, string Message);
 
     public record AssignRoleRequest(string UserEmail, string RoleName);
-    public record RemoveRoleRequest(string UserEmail, string RoleName);
 }

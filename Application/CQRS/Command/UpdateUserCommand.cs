@@ -5,8 +5,11 @@ using MediatR;
 namespace Application.CQRS.Command
 {
     public record UpdateUserCommand(
-        Guid Id,
+
         string FirstName,
         string LastName,
-        string Email) : IRequest<ServiceResult<UserDto>>;
+        string Email,
+        string PhoneNumber,
+        string Password,
+        string ConfrimedPassword) : IRequest<ServiceResult<UserDto>>;
 }

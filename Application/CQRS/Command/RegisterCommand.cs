@@ -15,8 +15,12 @@ namespace Application.CQRS.Command
         string FirstName,
         string LastName,
         string Email,
+        string PhoneNumber,
         string Password,
-        string ConfrimedPassword) : IRequest<ServiceResult<LoginResponse>>;
+        string ConfrimedPassword) : IRequest<ServiceResult<LoginResponse>>
+    {
+
+    };
     
     
 

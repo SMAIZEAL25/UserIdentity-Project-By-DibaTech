@@ -28,7 +28,7 @@ namespace Users_project.Controller
         public async Task<IActionResult> Register([FromBody] RegisterCommand command)
         {
             var result = await _mediator.Send(command);
-            return result.ToActionResult(); 
+            return result.ToActionResult();
         }
 
         [HttpPost("login")]
@@ -46,5 +46,17 @@ namespace Users_project.Controller
         [Authorize] // Requires JWT
         public async Task<IActionResult> Logout()
         => (await _mediator.Send(new LogoutCommand())).ToActionResult();
+
+        [HttpPost("assign-Role")]
+        public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
+        {
+            var command = new AssignRoleCommand
+            {
+                UserEmail = request.UserEmail,
+                RoleName = request.RoleName
+            };
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
     }
 }

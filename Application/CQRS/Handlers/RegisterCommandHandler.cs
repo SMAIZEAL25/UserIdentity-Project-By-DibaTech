@@ -51,6 +51,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, ServiceRe
             FirstName = $"{request.FirstName} {request.LastName}",
             LastName = request.LastName,
             Email = request.Email,
+            PhoneNumber = request.PhoneNumber,
             UserName = request.Email,
             CreatedAt = DateTime.UtcNow
         };

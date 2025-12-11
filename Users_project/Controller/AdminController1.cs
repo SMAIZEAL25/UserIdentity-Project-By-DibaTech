@@ -33,14 +33,18 @@ namespace Users_project.Controller
             return result.ToActionResult();
         }
 
-        // PUT: api/admin/users/123e4567-e89b-12d3-a456-426614174000
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserCommand command)
+        // PUT: api/admin/users/emailAddress
+        [HttpPut("{Email}")]
+        public async Task<IActionResult> Update(string email, [FromBody] UpdateUserCommand command)
         {
-            command = command with { Id = id };
+            command = command with { Email = email };
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
+
+        // Use Soft Delete for future audit purpose
+
+
     }
 }
 

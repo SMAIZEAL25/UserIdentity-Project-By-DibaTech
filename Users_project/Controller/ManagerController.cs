@@ -11,7 +11,7 @@ namespace Users_project.Controller
 {
     [ApiController]
     [Route("api/RequireManager")]
-    [Authorize(Policy = "RequireManager")]
+    [Authorize(Policy = "RequireManagerOrAdmin")]
     public class ManagerController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -29,7 +29,7 @@ namespace Users_project.Controller
         }
 
 
-        [HttpPost("roles")]
+        [HttpPost("Create-Roles")]
         public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequest request)
         {
             var command = new CreateRoleCommand { Name = request.Name };
@@ -39,7 +39,8 @@ namespace Users_project.Controller
 
 
 
-        [HttpPost("assign-role")]
+        [HttpPost("assign-Role")]
+       
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
         {
             var command = new AssignRoleCommand
@@ -53,7 +54,7 @@ namespace Users_project.Controller
 
 
 
-        [HttpPost("remove-role")]
+        [HttpPost("remove-Role")]
         public async Task<IActionResult> RemoveRole([FromBody] RemoveRoleRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.UserEmail);
@@ -65,14 +66,14 @@ namespace Users_project.Controller
 
 
 
-        [HttpDelete("roles/{roleName}")]
+        [HttpDelete("Delete-Roles/{roleName}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {
             var role = await _roleManager.FindByNameAsync(roleName);
             if (role == null) return NotFound();
 
             var result = await _roleManager.DeleteAsync(role);
-            return result.Succeeded ? Ok("Role deleted") : BadRequest(result.Errors); // Use Soft Delete for future audit purpose
+            return result.Succeeded ? Ok("Role deleted") : BadRequest(result.Errors); 
         }
 
         
