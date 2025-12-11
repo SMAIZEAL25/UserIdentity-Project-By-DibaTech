@@ -33,52 +33,54 @@ The overall aim of this project is to demonstrate mastery of:
 	•	Secure API design practices
 	•	Database schema for identity systems
 
-# Technology Used
-  Purpose
-  
-• ASP.NET Core (.NET 7/8)
-• API Development
-• Entity Framework Core
-• Database ORM
-• SQL Server
-• Primary Database
-• JWT Authentication
-• Secure Authentication
-• ASP.NET Identity (optional)
-• User & Role Management
-• MediatR (optional)
-• Clean Architecture & CQRS
-• AutoMapper (optional) but replace with    manual mapping
-• DTO Mapping instead Command and query • • request were used to separate read and    write operations.  
-• Serilog (optional)
-• Structured Logging
-• Swagger / Swashbuckle
-• API Documentation
+# Technology Used Purpose:
+
+	• ASP.NET Core (.NET 7/8)
+	• API Development
+	• Entity Framework Core
+	• Database ORM
+	• SQL Server
+	• Primary Database
+	• JWT Authentication
+	• Secure Authentication
+	• ASP.NET Identity (optional)
+	• User & Role Management
+	• MediatR (optional)
+	• Clean Architecture & CQRS
+	• AutoMapper (optional) but replace with    manual mapping
+	• DTO Mapping instead Command and query • • request were used to separate read and    write operations.  
+	• Serilog (optional)
+	• Structured Logging
+	• Swagger / Swashbuckle
+	• API Documentation
 
 Project Structure (Clean Architecture)
 
-src/
+src
 
- ├── Application/
- │    ├── Interfaces/
- │    ├── DTOs/
- │    ├── Services/
- │    └── CQRS / Validators/ 
+ Application
  
- ├── Domain/
+	├── Interfaces/
+	├── DTOs/
+	├── Services/
+	└── CQRS / Validators/ 
  
- │    ├── Entities/
- │    ├── Enums/
- │    └── ValueObjects/
+ Domain
  
- ├── Infrastructure/
- │    ├── Persistence/
- │    ├── EntityConfigurations/
- │    ├── Authentication/
- │    └── Services/
+	├── Entities/
+	├── Enums/
+ 	└── ValueObjects/
+ 
+ Infrastructure
+ 
+	├── Persistence/
+	├── EntityConfigurations/
+	├── Authentication/
+	└── Services/
 
  
- └── WebApi/
+ WebApi
+ 
       ├── Controllers/
       ├── Middleware/
       ├── Filters/
@@ -177,10 +179,11 @@ Minimum required tables:
 	•	UserRoles (junction)
 	•	(Optional) RefreshTokens
 
-   • Users
-   • Roles
-   • UserRoles
-   • RefreshTokens (optional)
+Users:
+
+	• Roles
+	• UserRoles
+	• RefreshTokens (optional)
 
 # Authentication Flow Overview
 
@@ -203,54 +206,56 @@ Prerequisites:
 	•	Postman / Thunder Client
 	•	EF Core Tools installed
 
-# Setup Steps
+# Setup Steps:
 
-git clone <repo-url>
-cd <project-folder>
+	git clone <repo-url>
+	cd <project-folder>
 
-1. Add migrations
+Add migrations:
 
-dotnet ef migrations add InitialCreate -p Infrastructure -s WebApi
-dotnet ef database update -p Infrastructure -s WebApi
+	1. dotnet ef migrations add InitialCreate -p Infrastructure -s WebApi
+	3. dotnet ef database update -p Infrastructure -s WebApi
 
-2. Run the API
+Run the API:
 
-dotnet run --project WebApi
+	5. dotnet run --project WebApi
 
-3. Open Swagger UI
+Open Swagger UI:
 
-https://localhost:<port>/swagger
+	https://localhost:7086/swagger
 
 # API Endpoints Summary
 
-Auth
+Auth:
 
-Method
-Endpoint   Description
-POST       /api/auth/register  Register new user
-POST       /api/auth/login  Authenticate user & generate JWT
+	Method
+	Endpoint   Description
+	POST       https://localhost:7086/api/auth/register                    Register new user
+	POST       https://localhost:7086/api/auth/login                       Authenticate user & generate JWT
 
-Users
+Users:
+	
+	Method
+	Endpoint                   	Access
+	GET /api/users            	Admin only
+	GET /api/users/{id}       	Admin / Owner
+	PUT /api/users/{id}       	Admin / Owner
+	DELETE /api/users/{id}    	Admin only
 
-Method
-Endpoint                   Access
-GET /api/users            Admin only
-GET /api/users/{id}       Admin / Owner
-PUT /api/users/{id}       Admin / Owner
-DELETE /api/users/{id}    Admin only
+Roles:
 
-Roles 
-Method
-Endpoint                  Access
-POST /api/roles           Admin
-POST /api/roles/assign    Admin
-POST /api/roles/remove    Admin
-DELETE /api/roles/{id}    Admin
+	Method
+	Endpoint                  Access
+	POST /api/roles           Admin
+	POST /api/roles/assign    Admin
+	POST /api/roles/remove    Admin
+	DELETE /api/roles/{id}    Admin
 
 
 # Postman Collection
 
 Ensure to include:
+
 	•	Public endpoints
 	•	Authentication workflow
 	•	Protected endpoints with Bearer token
@@ -262,16 +267,17 @@ Ensure to include:
 
 # Deliverables (Per Assignment)
 
-✔ Working .NET API
-✔ Database schema / migrations
-✔ Postman collection
-✔ Documentation of authentication & authorization logic (this README)
+	Working .NET API
+	Database schema / migrations
+	Postman collection
+	Documentation of authentication & authorization logic (this README)
 
 ⸻
 
 # Learning Outcomes
 
 By completing this project, you will have a solid understanding of:
+
 	•	Secure user authentication
 	•	Token lifecycle management
 	•	Role-based & Policy-based authorization
@@ -285,9 +291,7 @@ By completing this project, you will have a solid understanding of:
 Contributions, issues, and feature requests are welcome.
 Feel free to open a PR or raise an issue.
 
-# Feature Improvement 
-  
-  2FA with OTP 
-  
-  Rate Limiting 
+# Feature Improvement:
+	2FA with OTP 
+	Rate Limiting 
 
