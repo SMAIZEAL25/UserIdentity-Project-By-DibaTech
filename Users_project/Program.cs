@@ -67,20 +67,33 @@ public class Program
         // Identity
         builder.Services.AddIdentity<AppUser, AppRole>(options =>
         {
+            // password requirement policy 
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequiredLength = 10;
+            options.Password.RequiredUniqueChars = 4;
 
+            //Loukout Settings 
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
 
+            //user setting that is required 
             options.User.RequireUniqueEmail = true;
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+
+            // 2FA authentication settings
+
+            options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+            options.SignIn.RequireConfirmedAccount = true;
         })
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
+
+        // Configure the 2FA Code to last for only 5 minitue 
+        builder.Services.Configure<DataProtectionTokenProviderOptions>(opt => opt.TokenLifespan = TimeSpan.FromMinutes(5));
 
         // JWT
         var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -134,6 +147,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IJWTService, JWTService>();
+        builder.Services.AddScoped<ITwoFactorService, TwoFactorsService>();
         builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
         // MediatR + FluentValidation Pipeline (THIS IS THE CORRECT WAY)

@@ -39,8 +39,7 @@ namespace Users_project.Controller
 
 
 
-        [HttpPost("assign-Role")]
-       
+        [HttpPost("assign-Role")]       
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleRequest request)
         {
             var command = new AssignRoleCommand
@@ -65,7 +64,6 @@ namespace Users_project.Controller
         }
 
 
-
         [HttpDelete("Delete-Roles/{roleName}")]
         public async Task<IActionResult> DeleteRole(string roleName)
         {
@@ -75,9 +73,7 @@ namespace Users_project.Controller
             var result = await _roleManager.DeleteAsync(role);
             return result.Succeeded ? Ok("Role deleted") : BadRequest(result.Errors); 
         }
-
-        
-
+       
     }
 
 }

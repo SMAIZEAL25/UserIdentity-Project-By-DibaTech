@@ -27,14 +27,20 @@ namespace Application.CQRS.Validator
                 .NotEmpty()
                 .WithMessage("Email is required")
                 .EmailAddress()
-                .WithMessage("Invalid email format")
-                .Matches(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")
                 .WithMessage("Invalid email format");
+
+            //RuleFor(x => x.Email)
+            //    .NotEmpty()
+            //    .WithMessage("Email is required")
+            //    .EmailAddress()
+            //    .WithMessage("Invalid email format")
+            //    .Matches(@"^[a-zA-Z0-9]+([._-][a-zA-Z0-9]+)*@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$")
+            //    .WithMessage("Email must be in a valid format (e.g., firstname.lastname@domain.com)");
 
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty()
                 .WithMessage("Phone number is required")
-                .Matches(@"^\d{10}$")
+                .Matches(@"^\d{11,15}$")
                 .WithMessage("Phone number must be 10 digits");
 
             RuleFor(x => x.Password)

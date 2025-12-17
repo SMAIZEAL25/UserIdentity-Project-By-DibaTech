@@ -58,5 +58,14 @@ namespace Users_project.Controller
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
+
+        [HttpPost("2fa/enable")]
+        [Authorize]
+        public async Task<IActionResult> Enable2FA()
+            => (await _mediator.Send(new Enable2FACommand())).ToActionResult();
+
+        [HttpPost("2fa/verify")]
+        public async Task<IActionResult> Verify2FA([FromBody] Verify2FACommand command)
+            => (await _mediator.Send(command)).ToActionResult();
     }
 }
