@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Application.Result;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Users_project.Controller
 {
     [ApiController]
     [Route("api/RequireManager")]
     [Authorize(Policy = "RequireManagerOrAdmin")]
+    [EnableRateLimiting("UserBasedRateLimit")]
     public class ManagerController : ControllerBase
     {
         private readonly IMediator _mediator;

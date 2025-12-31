@@ -10,12 +10,15 @@ using MediatR;
 using MediatR.Registration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Threading.RateLimiting;
 
 namespace Users_project;
 
@@ -57,8 +60,11 @@ public class Program
 
         // Serilog
         builder.Host.UseSerilog((ctx, lc) => lc
-            .WriteTo.Console()
-            .ReadFrom.Configuration(ctx.Configuration)); 
+        .WriteTo.Console()
+        .ReadFrom.Configuration(ctx.Configuration)
+        .Enrich.WithProperty("Application", "UserRegisterAPIDb")
+        .Filter.ByExcluding(logEvent => logEvent.Properties.ContainsKey("RequestBody") && logEvent.Properties["RequestBody"].ToString().Contains("Password")));
+
 
         // Database
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -141,6 +147,45 @@ public class Program
             options.AddPolicy("RequireAdmin", p => p.RequireRole(SystemRoles.Admin));
             options.AddPolicy("RequireManagerOrAdmin", p => p.RequireRole(SystemRoles.Admin, SystemRoles.Manager));
             options.AddPolicy("RequireUser", p => p.RequireRole(SystemRoles.User, SystemRoles.Manager, SystemRoles.Admin));
+        });
+
+        // Add Rate Limiting (combined configuration)
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddFixedWindowLimiter("BasicRateLimit", opt =>
+            {
+                opt.PermitLimit = 100;
+                opt.Window = TimeSpan.FromMinutes(1);
+                opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                opt.QueueLimit = 10;
+            });
+
+            options.AddPolicy("UserBasedRateLimit", context =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.User.Identity?.IsAuthenticated == true
+                        ? context.User.FindFirst("uid")?.Value ?? "anonymous"
+                        : context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: userId => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 50,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 10
+                    }
+                );
+            });
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = async (context, token) =>
+            {
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                context.HttpContext.Response.ContentType = "application/json";
+                context.HttpContext.Response.Headers.Append("Retry-After", "60");
+                await context.HttpContext.Response.WriteAsync(
+                    JsonSerializer.Serialize(new { message = "Too many requests. Please try again later." }),
+                    token);
+            };
         });
 
         // Core Services

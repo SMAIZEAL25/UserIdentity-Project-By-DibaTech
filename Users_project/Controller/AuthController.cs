@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Application.Result;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 namespace Users_project.Controller
@@ -15,6 +16,7 @@ namespace Users_project.Controller
 
     [ApiController]
     [Route("api/auth")]
+    [EnableRateLimiting("UserBasedRateLimit")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;

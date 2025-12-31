@@ -4,6 +4,7 @@ using Application.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Reflection;
 
 namespace Users_project.Controller
@@ -11,6 +12,7 @@ namespace Users_project.Controller
     [ApiController]
     [Route("api/admin/users")]
     [Authorize(Policy = "RequireAdmin")]
+    [EnableRateLimiting("UserBasedRateLimit")]
     public class UsersController : ControllerBase
     {
         private readonly IMediator _mediator;
